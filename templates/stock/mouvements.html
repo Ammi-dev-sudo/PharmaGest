@@ -1,0 +1,65 @@
+{% extends 'base/base.html' %}
+{% block title %}Mouvements{% endblock %}
+{% block page_title %}Mouvements de stock{% endblock %}
+{% block page_subtitle %}Historique traçable des entrées, sorties et corrections{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-arrow-left-right"></i></span> Mouvements</h1>
+        <p>{{ page_obj.paginator.count }} mouvement(s) enregistré(s)</p>
+    </div>
+    <a href="{% url 'etat_stock' %}" class="btn btn-light"><i class="bi bi-box-seam"></i> État du stock</a>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="row g-2 flex-grow-1">
+            <div class="col-md-5">
+                <input type="text" name="q" class="form-control" placeholder="Médicament, référence, motif…" value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">Tous les types</option>
+                    {% for value, label in types %}
+                    <option value="{{ value }}" {% if type_mouvement == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-funnel"></i> Filtrer</button></div>
+            <div class="col-md-2"><a href="{% url 'liste_mouvements' %}" class="btn btn-light w-100">Réinitialiser</a></div>
+        </form>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr><th>Date</th><th>Médicament</th><th>Type</th><th class="text-center">Quantité</th><th>Lot</th><th>Motif</th><th>Utilisateur</th><th>Référence</th></tr>
+                </thead>
+                <tbody>
+                    {% for mouvement in mouvements %}
+                    <tr>
+                        <td>{{ mouvement.date_mouvement|date:"d/m/Y H:i" }}</td>
+                        <td class="fw-semibold">{{ mouvement.medicament.nom_commercial }}</td>
+                        <td>
+                            {% if mouvement.type_mouvement == 'ENTREE' %}<span class="badge badge-soft-green"><i class="bi bi-arrow-down"></i> Entrée</span>
+                            {% elif mouvement.type_mouvement == 'SORTIE' %}<span class="badge badge-soft-rose"><i class="bi bi-arrow-up"></i> Sortie</span>
+                            {% elif mouvement.type_mouvement == 'CORRECTION' %}<span class="badge badge-soft-amber"><i class="bi bi-wrench"></i> Correction</span>
+                            {% else %}<span class="badge badge-soft-indigo"><i class="bi bi-arrow-counterclockwise"></i> Retour</span>{% endif %}
+                        </td>
+                        <td class="text-center fw-bold">{{ mouvement.quantite }}</td>
+                        <td>{{ mouvement.lot.numero_lot|default:"—" }}</td>
+                        <td class="text-truncate" style="max-width:200px;">{{ mouvement.motif }}</td>
+                        <td>{{ mouvement.utilisateur.username }}</td>
+                        <td>{{ mouvement.reference|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8"><div class="empty-state"><i class="bi bi-arrow-left-right"></i><p>Aucun mouvement enregistré.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}

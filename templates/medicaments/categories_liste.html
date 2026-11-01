@@ -1,0 +1,36 @@
+{% extends 'base/base.html' %}
+{% block title %}Catégories{% endblock %}
+{% block page_title %}Catégories{% endblock %}
+{% block page_subtitle %}Classification du catalogue pharmaceutique{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-tags-fill"></i></span> Catégories</h1>
+        <p>{{ categories|length }} catégorie(s) · classer vos médicaments</p>
+    </div>
+    <a href="{% url 'ajouter_categorie' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter une catégorie</a>
+</div>
+
+<div class="row g-3">
+    {% for categorie in categories %}
+    <div class="col-sm-6 col-lg-4 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="ai-ico ai-teal" style="width:48px;height:48px;font-size:1.25rem;"><i class="bi bi-tag-fill"></i></div>
+                    <div class="d-flex gap-2">
+                        <span class="badge badge-soft-teal">{{ categorie.medicaments.count }} produit(s)</span>
+                        <a href="{% url 'modifier_categorie' categorie.id %}" class="btn btn-sm btn-light" title="Modifier"><i class="bi bi-pencil"></i></a>
+                    </div>
+                </div>
+                <h3 class="h5 fw-bold mb-1">{{ categorie.nom }}</h3>
+                <p class="text-muted small mb-0">{{ categorie.description|default:"Aucune description." }}</p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="pg-card"><div class="empty-state"><i class="bi bi-tags"></i><p>Aucune catégorie enregistrée.</p></div></div></div>
+    {% endfor %}
+</div>
+{% endblock %}

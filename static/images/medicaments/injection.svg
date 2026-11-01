@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Injection">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eff6ff"/><stop offset="1" stop-color="#ecfdf5"/>
+    </linearGradient>
+    <linearGradient id="barrel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#1e3a8a" flood-opacity=".2"/>
+    </filter>
+  </defs>
+  <rect width="600" height="400" rx="28" fill="url(#bg)"/>
+  <circle cx="110" cy="90" r="100" fill="#bfdbfe" opacity=".45"/>
+  <circle cx="510" cy="320" r="120" fill="#a7f3d0" opacity=".4"/>
+  <g filter="url(#sh)" transform="rotate(-30 300 200)">
+    <rect x="150" y="172" width="250" height="56" rx="12" fill="url(#barrel)" stroke="#94a3b8" stroke-width="2"/>
+    <rect x="168" y="184" width="140" height="32" rx="8" fill="#34d399" opacity=".8"/>
+    <rect x="320" y="160" width="18" height="80" rx="6" fill="#64748b"/>
+    <rect x="338" y="176" width="26" height="48" rx="8" fill="#0f766e"/>
+    <path d="M364 200h62" stroke="#94a3b8" stroke-width="7" stroke-linecap="round"/>
+    <path d="M426 200l34-10v20z" fill="#94a3b8"/>
+    <rect x="104" y="180" width="52" height="40" rx="8" fill="#14b8a6"/>
+    <path d="M104 200H70" stroke="#64748b" stroke-width="8" stroke-linecap="round"/>
+    <rect x="150" y="212" width="20" height="30" rx="6" fill="#94a3b8"/>
+    <g stroke="#fff" stroke-opacity=".8" stroke-width="3">
+      <path d="M186 172v10M206 172v16M226 172v10M246 172v16M266 172v10M286 172v16"/>
+    </g>
+  </g>
+  <circle cx="466" cy="286" r="34" fill="#f43f5e" opacity=".18"/>
+  <path d="M448 286h36M466 268v36" stroke="#f43f5e" stroke-width="8" stroke-linecap="round"/>
+</svg>

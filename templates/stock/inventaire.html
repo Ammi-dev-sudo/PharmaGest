@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% block title %}Inventaire{% endblock %}
+{% block page_title %}Inventaire physique{% endblock %}
+{% block page_subtitle %}Corriger les quantités réelles et tracer les écarts{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-clipboard-check"></i></span> Inventaire</h1>
+        <p>Saisissez les quantités comptées puis enregistrez l'inventaire.</p>
+    </div>
+    <a href="{% url 'etat_stock' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> État du stock</a>
+</div>
+
+<form method="get" class="pg-card reveal mb-3">
+    <div class="pg-card-body">
+        <div class="d-flex gap-2" style="max-width: 520px;">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher un médicament ou un lot…" value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            {% if query %}<a href="{% url 'inventaire' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a>{% endif %}
+        </div>
+    </div>
+</form>
+
+<form method="post" class="pg-card reveal">
+    {% csrf_token %}
+    <div class="pg-card-header">
+        <h3><i class="bi bi-list-check"></i> Lots à compter</h3>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2-all"></i> Enregistrer l'inventaire</button>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr><th>Médicament</th><th>Lot</th><th>Expiration</th><th class="text-center">Stock théorique</th><th class="text-center" style="width:150px;">Quantité comptée</th><th>État</th></tr>
+                </thead>
+                <tbody>
+                    {% for lot in lots %}
+                    <tr>
+                        <td class="fw-semibold">{{ lot.medicament.nom_commercial }}</td>
+                        <td>{{ lot.numero_lot }}</td>
+                        <td>{{ lot.date_peremption|date:"d/m/Y" }}</td>
+                        <td class="text-center">{{ lot.quantite }}</td>
+                        <td><input type="number" min="0" name="qte_{{ lot.id }}" value="{{ lot.quantite }}" class="form-control form-control-sm text-center"></td>
+                        <td>{% if lot.est_perime %}<span class="badge badge-soft-rose">Périmé</span>{% else %}<span class="badge badge-soft-green">Valide</span>{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-box"></i><p>Aucun lot.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="pg-card-footer d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Enregistrer l'inventaire</button>
+    </div>
+</form>
+{% endblock %}

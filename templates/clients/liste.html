@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% block title %}Clients{% endblock %}
+{% block page_title %}Clients{% endblock %}
+{% block page_subtitle %}Carnet des clients de la pharmacie{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-people-fill"></i></span> Clients</h1>
+        <p>{{ page_obj.paginator.count }} client(s) enregistré(s)</p>
+    </div>
+    <a href="{% url 'ajouter_client' %}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Ajouter un client</a>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="d-flex gap-2 flex-grow-1">
+            <input type="text" name="q" class="form-control" placeholder="Nom, téléphone ou e-mail…" value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            {% if query %}<a href="{% url 'liste_clients' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a>{% endif %}
+        </form>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead><tr><th>Client</th><th>Téléphone</th><th>E-mail</th><th>Adresse</th><th>Statut</th><th>Inscrit le</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="pg-avatar-sm">{{ client.nom_complet|slice:":2"|upper }}</span>
+                                <span class="fw-semibold">{{ client.nom_complet }}</span>
+                            </div>
+                        </td>
+                        <td>{{ client.telephone|default:"—" }}</td>
+                        <td>{{ client.email|default:"—" }}</td>
+                        <td class="text-truncate" style="max-width:220px;">{{ client.adresse|default:"—" }}</td>
+                        <td>{% if client.actif %}<span class="badge badge-soft-green">Actif</span>{% else %}<span class="badge badge-soft-rose">Inactif</span>{% endif %}</td>
+                        <td>{{ client.date_creation|date:"d/m/Y" }}</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{% url 'detail_client' client.id %}" class="btn btn-sm btn-soft" title="Historique"><i class="bi bi-clock-history"></i></a>
+                                <a href="{% url 'modifier_client' client.id %}" class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'basculer_client' client.id %}" class="btn btn-sm btn-light" title="Activer/Désactiver"><i class="bi bi-power"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-people"></i><p>Aucun client trouvé.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}

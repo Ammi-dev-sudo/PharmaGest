@@ -1,0 +1,60 @@
+{% extends 'base/base.html' %}
+{% block title %}Fournisseurs{% endblock %}
+{% block page_title %}Fournisseurs{% endblock %}
+{% block page_subtitle %}Partenaires et approvisionnement{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-truck"></i></span> Fournisseurs</h1>
+        <p>{{ page_obj.paginator.count }} fournisseur(s) enregistré(s)</p>
+    </div>
+    <a href="{% url 'ajouter_fournisseur' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter un fournisseur</a>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="d-flex gap-2 flex-grow-1">
+            <input type="text" name="q" class="form-control" placeholder="Nom ou téléphone…" value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            {% if query %}<a href="{% url 'liste_fournisseurs' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a>{% endif %}
+        </form>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead><tr><th>Fournisseur</th><th>Contact</th><th>Téléphone</th><th>E-mail</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    {% for f in fournisseurs %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="pg-avatar-sm"><i class="bi bi-truck"></i></span>
+                                <div>
+                                    <div class="fw-semibold">{{ f.nom_raison_sociale }}</div>
+                                    <div class="small text-muted">{{ f.numero_fiscal|default:"" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ f.contact_principal|default:"—" }}</td>
+                        <td>{{ f.telephone }}</td>
+                        <td>{{ f.email|default:"—" }}</td>
+                        <td>{% if f.actif %}<span class="badge badge-soft-green">Actif</span>{% else %}<span class="badge badge-soft-rose">Inactif</span>{% endif %}</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{% url 'detail_fournisseur' f.id %}" class="btn btn-sm btn-soft" title="Historique"><i class="bi bi-clock-history"></i></a>
+                                <a href="{% url 'modifier_fournisseur' f.id %}" class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'desactiver_fournisseur' f.id %}" class="btn btn-sm btn-light" title="Activer/Désactiver"><i class="bi bi-power"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-truck"></i><p>Aucun fournisseur trouvé.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}

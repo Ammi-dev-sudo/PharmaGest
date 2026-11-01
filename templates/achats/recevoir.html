@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+{% block title %}Réception {{ commande.numero_commande }}{% endblock %}
+{% block page_title %}Réception de commande{% endblock %}
+{% block page_subtitle %}{{ commande.numero_commande }} · {{ commande.fournisseur.nom_raison_sociale }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+</div>
+
+<form method="post" class="pg-card reveal">
+    {% csrf_token %}
+    <div class="pg-card-header">
+        <h3><i class="bi bi-box-arrow-in-down"></i> Quantités reçues et lots</h3>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr>
+                        <th>Médicament</th>
+                        <th class="text-center">Commandé</th>
+                        <th class="text-center">Déjà reçu</th>
+                        <th style="width:120px;">Quantité reçue</th>
+                        <th style="width:150px;">N° de lot</th>
+                        <th style="width:160px;">Date de péremption</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in commande.lignes.all %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="med-thumb"><img src="{{ ligne.medicament.image_url }}" alt=""></span>
+                                <div>
+                                    <div class="fw-semibold">{{ ligne.medicament.nom_commercial }}</div>
+                                    <div class="small text-muted">Reste : {{ ligne.quantite_restante }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">{{ ligne.quantite }}</td>
+                        <td class="text-center">{{ ligne.quantite_recue }}</td>
+                        <td><input type="number" name="quantite_{{ ligne.id }}" class="form-control form-control-sm" min="0" max="{{ ligne.quantite_restante }}" value="{{ ligne.quantite_restante }}" {% if ligne.quantite_restante <= 0 %}disabled{% endif %}></td>
+                        <td><input type="text" name="lot_{{ ligne.id }}" class="form-control form-control-sm" placeholder="LOT-2026-001" {% if ligne.quantite_restante <= 0 %}disabled{% endif %}></td>
+                        <td><input type="date" name="peremption_{{ ligne.id }}" class="form-control form-control-sm" {% if ligne.quantite_restante <= 0 %}disabled{% endif %}></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="pg-card-body border-top">
+        <label class="form-label">Notes de réception</label>
+        <textarea name="notes" class="form-control" rows="2" placeholder="Observation éventuelle…"></textarea>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <a href="{% url 'detail_commande' commande.id %}" class="btn btn-light">Annuler</a>
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Enregistrer la réception</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base/base.html' %}
+{% block title %}Péremptions{% endblock %}
+{% block page_title %}Péremptions{% endblock %}
+{% block page_subtitle %}Lots périmés et produits proches de la date limite{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-calendar-x-fill"></i></span> Surveillance des péremptions</h1>
+        <p>{{ lots_perimes|length }} lot(s) périmé(s) · {{ lots_proches|length }} lot(s) expirant sous 30 jours</p>
+    </div>
+    <a href="{% url 'peremptions_pdf' %}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> Exporter en PDF</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-header" style="background:linear-gradient(135deg,#fff1f2,#fff);">
+                <h3><i class="bi bi-exclamation-octagon text-danger"></i> Déjà périmés</h3>
+                <span class="badge badge-soft-rose">{{ lots_perimes|length }}</span>
+            </div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Médicament</th><th>Lot</th><th class="text-center">Qté</th><th>Expiration</th></tr></thead>
+                        <tbody>
+                            {% for lot in lots_perimes %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="med-thumb"><img src="{{ lot.medicament.image_url }}" alt=""></span>
+                                        <span class="fw-semibold">{{ lot.medicament.nom_commercial }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ lot.numero_lot }}</td>
+                                <td class="text-center">{{ lot.quantite }}</td>
+                                <td><span class="badge badge-soft-rose">{{ lot.date_peremption|date:"d/m/Y" }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4"><div class="empty-state"><i class="bi bi-check-circle"></i><p>Aucun lot périmé.</p></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-header" style="background:linear-gradient(135deg,#fffbeb,#fff);">
+                <h3><i class="bi bi-clock-history text-warning"></i> Expire dans 30 jours</h3>
+                <span class="badge badge-soft-amber">{{ lots_proches|length }}</span>
+            </div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Médicament</th><th>Lot</th><th class="text-center">Qté</th><th>Expiration</th></tr></thead>
+                        <tbody>
+                            {% for lot in lots_proches %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="med-thumb"><img src="{{ lot.medicament.image_url }}" alt=""></span>
+                                        <span class="fw-semibold">{{ lot.medicament.nom_commercial }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ lot.numero_lot }}</td>
+                                <td class="text-center">{{ lot.quantite }}</td>
+                                <td><span class="badge badge-soft-amber">{{ lot.date_peremption|date:"d/m/Y" }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4"><div class="empty-state"><i class="bi bi-emoji-smile"></i><p>Aucun lot proche de la péremption.</p></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

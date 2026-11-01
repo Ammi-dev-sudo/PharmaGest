@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}{{ titre|default:"Médicament" }}{% endblock %}
+{% block page_title %}{{ titre|default:"Médicament" }}{% endblock %}
+{% block page_subtitle %}Fiche produit, photo, prix et seuil d'alerte{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'liste_medicaments' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour au catalogue</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="pg-card reveal">
+                <div class="pg-card-header"><h3><i class="bi bi-capsule"></i> Informations du médicament</h3></div>
+                <div class="pg-card-body">
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-md-6">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text|safe }}</div>{% endif %}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|striptags }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="pg-card reveal d1">
+                <div class="pg-card-header"><h3><i class="bi bi-image"></i> Aperçu</h3></div>
+                <div class="pg-card-body text-center">
+                    <div class="med-thumb xl mx-auto mb-3" style="height:180px;">
+                        <img id="photoPreview" src="{% if form.instance.pk and form.instance.photo %}{{ form.instance.photo.url }}{% else %}{% static 'images/medicaments/reels/autre.jpg' %}{% endif %}" alt="Aperçu">
+                    </div>
+                    <p class="text-muted small">Une photo carrée est recommandée. Formats : JPG, PNG, WEBP (max 5 Mo).</p>
+                    <hr>
+                    <div class="text-start small text-muted">
+                        <div class="d-flex justify-content-between py-1"><span>Prix d'achat</span><span>—</span></div>
+                        <div class="d-flex justify-content-between py-1"><span>Prix de vente</span><span>—</span></div>
+                        <div class="d-flex justify-content-between py-1"><span>Marge unitaire</span><span>calculée automatiquement</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-check-lg"></i> Enregistrer</button>
+                <a href="{% url 'liste_medicaments' %}" class="btn btn-light">Annuler</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const input = document.getElementById('id_photo');
+    const preview = document.getElementById('photoPreview');
+    if (input && preview) {
+        input.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => (preview.src = e.target.result);
+            reader.readAsDataURL(file);
+        });
+    }
+})();
+</script>
+{% endblock %}

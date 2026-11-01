@@ -1,0 +1,78 @@
+{% extends 'base/base.html' %}
+{% block title %}Achats{% endblock %}
+{% block page_title %}Commandes d'achat{% endblock %}
+{% block page_subtitle %}Approvisionnement et réceptions fournisseurs{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-bag-check-fill"></i></span> Commandes d'achat</h1>
+        <p>{{ page_obj.paginator.count }} commande(s) enregistrée(s)</p>
+    </div>
+    <a href="{% url 'creer_commande' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Créer une commande</a>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="row g-2 flex-grow-1">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control" placeholder="N° commande ou fournisseur…" value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in statuts %}
+                    <option value="{{ value }}" {% if statut == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i> Filtrer</button>
+                <a href="{% url 'liste_commandes' %}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr>
+                        <th>N° Commande</th>
+                        <th>Fournisseur</th>
+                        <th>Statut</th>
+                        <th class="text-end">Montant total</th>
+                        <th>Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cmd in commandes %}
+                    <tr>
+                        <td class="fw-semibold">{{ cmd.numero_commande }}</td>
+                        <td>{{ cmd.fournisseur.nom_raison_sociale }}</td>
+                        <td>
+                            {% if cmd.statut == 'ENTIEREMENT_RECEPTIONNEE' %}<span class="badge badge-soft-green">{{ cmd.get_statut_display }}</span>
+                            {% elif cmd.statut == 'PARTIELLEMENT_RECEPTIONNEE' %}<span class="badge badge-soft-amber">{{ cmd.get_statut_display }}</span>
+                            {% elif cmd.statut == 'ANNULEE' %}<span class="badge badge-soft-rose">{{ cmd.get_statut_display }}</span>
+                            {% elif cmd.statut == 'COMMANDEE' %}<span class="badge badge-soft-indigo">{{ cmd.get_statut_display }}</span>
+                            {% else %}<span class="badge badge-soft-slate">{{ cmd.get_statut_display }}</span>{% endif %}
+                        </td>
+                        <td class="text-end fw-semibold">{{ cmd.montant_total|floatformat:0 }} Ar</td>
+                        <td>{{ cmd.date_commande|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{% url 'detail_commande' cmd.id %}" class="btn btn-sm btn-soft" title="Détails"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'bon_commande_pdf' cmd.id %}" class="btn btn-sm btn-light" title="Bon de commande PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-bag"></i><p>Aucune commande d'achat.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}

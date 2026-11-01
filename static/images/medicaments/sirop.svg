@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Sirop">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/><stop offset="1" stop-color="#ecfeff"/>
+    </linearGradient>
+    <linearGradient id="bottle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fdba74"/><stop offset=".45" stop-color="#f97316"/><stop offset="1" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#9a3412" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect width="600" height="400" rx="28" fill="url(#bg)"/>
+  <circle cx="500" cy="80" r="110" fill="#fed7aa" opacity=".45"/>
+  <circle cx="100" cy="330" r="120" fill="#a5f3fc" opacity=".35"/>
+  <g filter="url(#sh)">
+    <rect x="248" y="70" width="104" height="38" rx="12" fill="#0f766e"/>
+    <rect x="238" y="100" width="124" height="26" rx="8" fill="#134e4a"/>
+    <path d="M228 126h144l18 62v136a26 26 0 0 1-26 26H236a26 26 0 0 1-26-26V188z" fill="url(#bottle)"/>
+    <path d="M216 220h168v104a20 20 0 0 1-20 20H236a20 20 0 0 1-20-20z" fill="url(#liquid)" opacity=".9"/>
+    <rect x="242" y="176" width="112" height="116" rx="10" fill="#fff" opacity=".92"/>
+    <rect x="258" y="196" width="80" height="10" rx="5" fill="#0d9488"/>
+    <rect x="258" y="216" width="62" height="8" rx="4" fill="#94a3b8"/>
+    <rect x="258" y="234" width="72" height="8" rx="4" fill="#cbd5e1"/>
+    <rect x="258" y="252" width="50" height="8" rx="4" fill="#cbd5e1"/>
+    <path d="M470 150c40 10 56 46 40 78-10 20-30 30-52 26 24-26 26-64 12-104z" fill="#22d3ee" opacity=".75"/>
+  </g>
+</svg>

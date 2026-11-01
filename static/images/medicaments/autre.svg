@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Médicament">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fdfa"/><stop offset="1" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#5eead4"/><stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f766e" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect width="600" height="400" rx="28" fill="url(#bg)"/>
+  <circle cx="110" cy="90" r="100" fill="#99f6e4" opacity=".45"/>
+  <circle cx="500" cy="320" r="120" fill="#cbd5e1" opacity=".4"/>
+  <g filter="url(#sh)">
+    <path d="M190 140l110-46 110 46v128l-110 46-110-46z" fill="url(#box)"/>
+    <path d="M300 94l110 46-110 46-110-46z" fill="#a7f3d0"/>
+    <path d="M300 186v128l110-46V140z" fill="#0f766e" opacity=".28"/>
+    <rect x="258" y="168" width="84" height="10" rx="5" fill="#0f766e" opacity=".7"/>
+    <rect x="258" y="188" width="58" height="8" rx="4" fill="#0f766e" opacity=".45"/>
+    <g transform="translate(300 254)">
+      <circle r="26" fill="#fff" opacity=".95"/>
+      <path d="M0-13v26M-13 0h26" stroke="#0d9488" stroke-width="8" stroke-linecap="round"/>
+    </g>
+  </g>
+  <path d="M462 100l10 24 24 10-24 10-10 24-10-24-24-10 24-10z" fill="#34d399" opacity=".7"/>
+  <path d="M454 300l7 17 17 7-17 7-7 17-7-17-17-7 17-7z" fill="#818cf8" opacity=".6"/>
+</svg>

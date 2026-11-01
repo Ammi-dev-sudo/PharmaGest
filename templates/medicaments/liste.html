@@ -1,0 +1,130 @@
+{% extends 'base/base.html' %}
+{% block title %}Médicaments{% endblock %}
+{% block page_title %}Médicaments{% endblock %}
+{% block page_subtitle %}Catalogue, photos, prix et disponibilité{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-capsule"></i></span> Catalogue des médicaments</h1>
+        <p>{{ total }} produit(s) · {{ actifs }} actif(s) · {{ en_alerte }} en alerte</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'liste_categories' %}" class="btn btn-light"><i class="bi bi-tags"></i> Catégories</a>
+        <a href="{% url 'ajouter_medicament' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter un médicament</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3 reveal">
+        <div class="stat-card stat-teal">
+            <div class="stat-row"><div><div class="stat-label">Total produits</div><div class="stat-value" data-count="{{ total }}">0</div></div><div class="stat-icon"><i class="bi bi-capsule"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d1">
+        <div class="stat-card stat-green">
+            <div class="stat-row"><div><div class="stat-label">Actifs</div><div class="stat-value" data-count="{{ actifs }}">0</div></div><div class="stat-icon"><i class="bi bi-check2-circle"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d2">
+        <div class="stat-card stat-amber">
+            <div class="stat-row"><div><div class="stat-label">En alerte</div><div class="stat-value" data-count="{{ en_alerte }}">0</div></div><div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d3">
+        <div class="stat-card stat-indigo">
+            <div class="stat-row"><div><div class="stat-label">Catégories</div><div class="stat-value" data-count="{{ categories|length }}">0</div></div><div class="stat-icon"><i class="bi bi-tags"></i></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="pg-card reveal mb-3">
+    <div class="pg-card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Recherche</label>
+                <input type="text" name="q" class="form-control" placeholder="Nom, code-barres, laboratoire…" value="{{ query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Catégorie</label>
+                <select name="categorie" class="form-select">
+                    <option value="">Toutes</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if categorie_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Statut</label>
+                <select name="statut" class="form-select">
+                    <option value="">Tous</option>
+                    <option value="ACTIF" {% if statut == 'ACTIF' %}selected{% endif %}>Actif</option>
+                    <option value="ARCHIVE" {% if statut == 'ARCHIVE' %}selected{% endif %}>Archivé</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Trier par</label>
+                <select name="tri" class="form-select">
+                    <option value="nom" {% if tri == 'nom' %}selected{% endif %}>Nom</option>
+                    <option value="prix_asc" {% if tri == 'prix_asc' %}selected{% endif %}>Prix croissant</option>
+                    <option value="prix_desc" {% if tri == 'prix_desc' %}selected{% endif %}>Prix décroissant</option>
+                    <option value="recents" {% if tri == 'recents' %}selected{% endif %}>Plus récents</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrer</button>
+                <a href="{% url 'liste_medicaments' %}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for med in medicaments %}
+    <div class="col-sm-6 col-lg-4 col-xxl-3 reveal">
+        <div class="pg-card h-100">
+            <div class="position-relative">
+                <div class="med-thumb xl rounded-0 rounded-top"><img src="{{ med.image_url }}" alt="{{ med.nom_commercial }}"></div>
+                <span class="position-absolute top-0 end-0 m-2 badge {% if med.statut == 'ACTIF' %}badge-soft-green{% else %}badge-soft-slate{% endif %}">{{ med.get_statut_display }}</span>
+                {% if med.stock_total <= 0 %}
+                <span class="position-absolute top-0 start-0 m-2 badge badge-soft-rose">Épuisé</span>
+                {% elif med.stock_total <= med.seuil_alerte %}
+                <span class="position-absolute top-0 start-0 m-2 badge badge-soft-amber">Stock faible</span>
+                {% endif %}
+            </div>
+            <div class="pg-card-body">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div class="fw-bold" style="font-size:.95rem;color:var(--pg-ink);">{{ med.nom_commercial }}</div>
+                        <div class="small text-muted">{{ med.get_forme_pharmaceutique_display }} · {{ med.dosage }}</div>
+                    </div>
+                    <span class="badge badge-soft-teal">{{ med.categorie.nom|truncatechars:14 }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div>
+                        <div class="small text-muted">Prix de vente</div>
+                        <div class="fw-bold text-success">{{ med.prix_vente|floatformat:0 }} Ar</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted">Stock</div>
+                        <div class="fw-bold">{{ med.stock_total }} / {{ med.seuil_alerte }}</div>
+                    </div>
+                </div>
+                <div class="pg-progress {% if med.stock_total <= med.seuil_alerte %}amber{% endif %} mt-2">
+                    <span style="width: {% if med.stock_total <= 0 %}0{% elif med.stock_total >= med.seuil_alerte or med.seuil_alerte == 0 %}100{% else %}{% widthratio med.stock_total med.seuil_alerte 100 %}{% endif %}%"></span>
+                </div>
+                <div class="small text-muted mt-2">{{ med.laboratoire|default:"Laboratoire non renseigné" }}</div>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{% url 'modifier_medicament' med.id %}" class="btn btn-sm btn-soft flex-fill"><i class="bi bi-pencil"></i> Modifier</a>
+                    <a href="{% url 'archiver_medicament' med.id %}" class="btn btn-sm btn-light" data-confirm="Archiver ce médicament ?" title="Archiver"><i class="bi bi-archive"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="pg-card"><div class="empty-state"><i class="bi bi-capsule"></i><p>Aucun médicament ne correspond aux critères.</p></div></div></div>
+    {% endfor %}
+</div>
+
+{% include 'base/pagination.html' %}
+{% endblock %}

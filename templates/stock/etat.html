@@ -1,0 +1,100 @@
+{% extends 'base/base.html' %}
+{% block title %}État du stock{% endblock %}
+{% block page_title %}État du stock{% endblock %}
+{% block page_subtitle %}Quantités disponibles, valeur et alertes{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-box-seam-fill"></i></span> État du stock</h1>
+        <p>{{ nb_references }} référence(s) · {{ total_unites }} unités en stock</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'inventaire' %}" class="btn btn-light"><i class="bi bi-clipboard-check"></i> Inventaire</a>
+        <a href="{% url 'liste_mouvements' %}" class="btn btn-primary"><i class="bi bi-arrow-left-right"></i> Mouvements</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3 reveal">
+        <div class="stat-card stat-teal">
+            <div class="stat-row"><div><div class="stat-label">Références</div><div class="stat-value" data-count="{{ nb_references }}">0</div></div><div class="stat-icon"><i class="bi bi-capsule"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d1">
+        <div class="stat-card stat-indigo">
+            <div class="stat-row"><div><div class="stat-label">Unités en stock</div><div class="stat-value" data-count="{{ total_unites }}">0</div></div><div class="stat-icon"><i class="bi bi-boxes"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d2">
+        <div class="stat-card stat-green">
+            <div class="stat-row"><div><div class="stat-label">Valeur du stock</div><div class="stat-value" data-count="{{ valeur_stock|floatformat:0 }}" data-suffix=" Ar">0 Ar</div></div><div class="stat-icon"><i class="bi bi-cash-stack"></i></div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d3">
+        <div class="stat-card stat-amber">
+            <div class="stat-row"><div><div class="stat-label">Alertes</div><div class="stat-value" data-count="{{ nb_alertes }}">0</div></div><div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="d-flex gap-2 flex-grow-1" style="max-width: 480px;">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher un médicament…" value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            {% if query %}<a href="{% url 'etat_stock' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a>{% endif %}
+        </form>
+        <span class="badge badge-soft-teal">{{ page_obj.paginator.count }} produit(s)</span>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr>
+                        <th>Médicament</th>
+                        <th>Catégorie</th>
+                        <th class="text-end">Prix vente</th>
+                        <th class="text-center">Stock</th>
+                        <th class="text-center">Seuil</th>
+                        <th style="min-width:130px;">Niveau</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medicaments %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="med-thumb"><img src="{{ med.image_url }}" alt=""></span>
+                                <div>
+                                    <div class="fw-semibold">{{ med.nom_commercial }}</div>
+                                    <div class="small text-muted">{{ med.get_forme_pharmaceutique_display }} · {{ med.dosage }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ med.categorie.nom }}</td>
+                        <td class="text-end">{{ med.prix_vente|floatformat:0 }} Ar</td>
+                        <td class="text-center fw-bold">{{ med.stock_total }}</td>
+                        <td class="text-center">{{ med.seuil_alerte }}</td>
+                        <td>
+                            <div class="pg-progress {% if med.stock_total <= med.seuil_alerte %}amber{% endif %}">
+                                <span style="width: {% if med.stock_total <= 0 %}0{% elif med.stock_total >= med.seuil_alerte or med.seuil_alerte == 0 %}100{% else %}{% widthratio med.stock_total med.seuil_alerte 100 %}{% endif %}%"></span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if med.stock_total <= 0 %}<span class="badge badge-soft-rose">Épuisé</span>
+                            {% elif med.stock_total <= med.seuil_alerte %}<span class="badge badge-soft-amber">Stock faible</span>
+                            {% else %}<span class="badge badge-soft-green">OK</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-box"></i><p>Aucun médicament en stock.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}

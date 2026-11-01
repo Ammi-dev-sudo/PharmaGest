@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environnements virtuels
+venv/
+.venv/
+env/
+
+# Base de données locale
+*.sqlite3
+db.sqlite3
+backups/
+
+# Fichiers médias uploadés
+media/
+
+# Fichiers statiques collectés
+staticfiles/
+
+# Secrets et configuration locale
+.env
+.env.*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

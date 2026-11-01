@@ -1,0 +1,110 @@
+{% extends 'base/base.html' %}
+{% block title %}Commande {{ commande.numero_commande }}{% endblock %}
+{% block page_title %}Commande {{ commande.numero_commande }}{% endblock %}
+{% block page_subtitle %}Détail, lignes et réception{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'liste_commandes' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'bon_commande_pdf' commande.id %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Bon de commande</a>
+        {% if commande.statut == 'BROUILLON' %}
+        <a href="{% url 'valider_commande' commande.id %}" class="btn btn-primary"><i class="bi bi-check2-circle"></i> Valider la commande</a>
+        {% elif commande.statut == 'COMMANDEE' or commande.statut == 'PARTIELLEMENT_RECEPTIONNEE' %}
+        <a href="{% url 'recevoir_commande' commande.id %}" class="btn btn-success"><i class="bi bi-box-arrow-in-down"></i> Réceptionner</a>
+        {% endif %}
+        {% if commande.statut == 'BROUILLON' or commande.statut == 'COMMANDEE' %}
+        <form method="post" action="{% url 'annuler_commande' commande.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" data-confirm="Annuler cette commande ?"><i class="bi bi-x-octagon"></i> Annuler</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="pg-card reveal h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-info-circle"></i> Informations</h3></div>
+            <div class="pg-card-body">
+                <ul class="detail-list">
+                    <li><span class="k">N° commande</span><span class="v">{{ commande.numero_commande }}</span></li>
+                    <li><span class="k">Fournisseur</span><span class="v">{{ commande.fournisseur.nom_raison_sociale }}</span></li>
+                    <li><span class="k">Date</span><span class="v">{{ commande.date_commande|date:"d/m/Y H:i" }}</span></li>
+                    <li><span class="k">Statut</span><span class="v"><span class="badge badge-soft-indigo">{{ commande.get_statut_display }}</span></span></li>
+                    <li><span class="k">Créée par</span><span class="v">{{ commande.utilisateur.username }}</span></li>
+                    <li><span class="k">Montant total</span><span class="v text-success">{{ commande.montant_total|floatformat:0 }} Ar</span></li>
+                </ul>
+                {% if commande.notes %}<div class="alert alert-light small mt-3 mb-0">{{ commande.notes }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="pg-card reveal d1 h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-list-check"></i> Lignes de commande</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Médicament</th><th class="text-center">Commandé</th><th class="text-center">Reçu</th><th class="text-end">Prix unit.</th><th class="text-end">Montant</th>{% if commande.statut == 'BROUILLON' %}<th></th>{% endif %}</tr></thead>
+                        <tbody>
+                            {% for ligne in commande.lignes.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="med-thumb"><img src="{{ ligne.medicament.image_url }}" alt=""></span>
+                                        <div>
+                                            <div class="fw-semibold">{{ ligne.medicament.nom_commercial }}</div>
+                                            <div class="small text-muted">{{ ligne.medicament.dosage }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ ligne.quantite }}</td>
+                                <td class="text-center"><span class="badge {% if ligne.quantite_recue >= ligne.quantite %}badge-soft-green{% else %}badge-soft-amber{% endif %}">{{ ligne.quantite_recue }}</span></td>
+                                <td class="text-end">{{ ligne.prix_unitaire|floatformat:0 }} Ar</td>
+                                <td class="text-end fw-semibold">{{ ligne.montant_ligne|floatformat:0 }} Ar</td>
+                                {% if commande.statut == 'BROUILLON' %}
+                                <td class="text-end"><a href="{% url 'supprimer_ligne' commande.id ligne.id %}" class="btn btn-sm btn-light text-danger" data-confirm="Supprimer cette ligne ?"><i class="bi bi-trash3"></i></a></td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6"><div class="empty-state"><i class="bi bi-bag"></i><p>Aucune ligne pour l'instant.</p></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if commande.statut == 'BROUILLON' %}
+<div class="pg-card reveal mt-3">
+    <div class="pg-card-header"><h3><i class="bi bi-plus-circle"></i> Ajouter une ligne</h3></div>
+    <div class="pg-card-body">
+        <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-5">
+                <label class="form-label">Médicament</label>
+                <select name="medicament" class="form-select" required>
+                    <option value="">Sélectionner un médicament</option>
+                    {% for med in medicaments %}
+                    <option value="{{ med.id }}">{{ med.nom_commercial }} — {{ med.dosage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Quantité</label>
+                <input type="number" name="quantite" class="form-control" min="1" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Prix unitaire (Ar)</label>
+                <input type="number" name="prix_unitaire" class="form-control" min="0" step="1" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-plus-lg"></i> Ajouter</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

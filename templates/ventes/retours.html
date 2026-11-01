@@ -1,0 +1,54 @@
+{% extends 'base/base.html' %}
+{% block title %}Retours{% endblock %}
+{% block page_title %}Retours & annulations{% endblock %}
+{% block page_subtitle %}Traçabilité des produits retournés et des remboursements{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-arrow-counterclockwise"></i></span> Retours de vente</h1>
+        <p>{{ retours|length }} opération(s) enregistrée(s)</p>
+    </div>
+    <a href="{% url 'liste_ventes' %}" class="btn btn-primary"><i class="bi bi-receipt"></i> Choisir une vente</a>
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vente</th>
+                        <th>Type</th>
+                        <th>Motif</th>
+                        <th class="text-center">Quantité</th>
+                        <th>Stock</th>
+                        <th class="text-end">Remboursé</th>
+                        <th>Utilisateur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for retour in retours %}
+                    <tr>
+                        <td>{{ retour.date_retour|date:"d/m/Y H:i" }}</td>
+                        <td><a href="{% url 'detail_vente' retour.vente.id %}" class="fw-semibold text-decoration-none">{{ retour.vente.numero_vente }}</a></td>
+                        <td><span class="badge {% if retour.type_operation == 'ANNULATION' %}badge-soft-rose{% else %}badge-soft-amber{% endif %}">{{ retour.get_type_operation_display }}</span></td>
+                        <td class="text-truncate" style="max-width: 220px;">{{ retour.motif }}</td>
+                        <td class="text-center">{{ retour.quantite_totale }}</td>
+                        <td>
+                            {% if retour.remis_en_stock %}<span class="badge badge-soft-green">Réintégré</span>
+                            {% else %}<span class="badge badge-soft-slate">Non réintégré</span>{% endif %}
+                        </td>
+                        <td class="text-end fw-semibold">{{ retour.montant_rembourse|floatformat:0 }} Ar</td>
+                        <td>{{ retour.utilisateur.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8"><div class="empty-state"><i class="bi bi-arrow-counterclockwise"></i><p>Aucun retour enregistré.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

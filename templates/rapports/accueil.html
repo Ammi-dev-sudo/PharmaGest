@@ -1,0 +1,92 @@
+{% extends 'base/base.html' %}
+{% block title %}Rapports{% endblock %}
+{% block page_title %}Rapports & analyses{% endblock %}
+{% block page_subtitle %}Pilotage de l'activité de la pharmacie{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-bar-chart-fill"></i></span> Centre de rapports</h1>
+        <p>Indicateurs du mois en cours</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-sm-6 col-xl-3 reveal">
+        <div class="stat-card stat-green">
+            <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-body">
+                <span class="stat-label">CA du mois</span>
+                <span class="stat-value" data-count="{{ ca_mois|floatformat:0 }}">0</span>
+                <span class="stat-foot">Ar · {{ nb_ventes }} ventes</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 reveal d1">
+        <div class="stat-card stat-indigo">
+            <div class="stat-icon indigo"><i class="bi bi-basket"></i></div>
+            <div class="stat-body">
+                <span class="stat-label">Panier moyen</span>
+                <span class="stat-value" data-count="{{ panier_moyen|floatformat:0 }}">0</span>
+                <span class="stat-foot">Ar par vente</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 reveal d2">
+        <div class="stat-card stat-amber">
+            <div class="stat-icon amber"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-body">
+                <span class="stat-label">Valeur du stock</span>
+                <span class="stat-value" data-count="{{ stock_value|floatformat:0 }}">0</span>
+                <span class="stat-foot">Ar · {{ nb_medicaments }} références</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 reveal d3">
+        <div class="stat-card stat-rose">
+            <div class="stat-icon rose"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-body">
+                <span class="stat-label">Alertes stock</span>
+                <span class="stat-value" data-count="{{ alertes }}">0</span>
+                <span class="stat-foot">{{ perimes }} lot(s) périmé(s)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-4 reveal">
+        <a href="{% url 'rapport_ventes' %}" class="report-tile">
+            <span class="report-ico green"><i class="bi bi-receipt-cutoff"></i></span>
+            <h3>Rapport des ventes</h3>
+            <p>Chiffre d'affaires, panier moyen, modes de paiement et produits les plus vendus.</p>
+            <span class="report-link">Ouvrir <i class="bi bi-arrow-right"></i></span>
+        </a>
+    </div>
+    <div class="col-lg-4 reveal d1">
+        <a href="{% url 'rapport_achats' %}" class="report-tile">
+            <span class="report-ico indigo"><i class="bi bi-bag-check"></i></span>
+            <h3>Rapport des achats</h3>
+            <p>Commandes fournisseurs, montants engagés et répartition par statut.</p>
+            <span class="report-link">Ouvrir <i class="bi bi-arrow-right"></i></span>
+        </a>
+    </div>
+    <div class="col-lg-4 reveal d2">
+        <a href="{% url 'rapport_stock' %}" class="report-tile">
+            <span class="report-ico amber"><i class="bi bi-box-seam"></i></span>
+            <h3>Rapport de stock</h3>
+            <p>Valorisation du stock, quantités disponibles et produits en alerte.</p>
+            <span class="report-link">Ouvrir <i class="bi bi-arrow-right"></i></span>
+        </a>
+    </div>
+</div>
+
+<div class="pg-card reveal mt-3">
+    <div class="pg-card-header"><h3><i class="bi bi-download"></i> Exports rapides</h3></div>
+    <div class="pg-card-body d-flex flex-wrap gap-2">
+        <a href="{% url 'rapport_ventes_pdf' %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Ventes (PDF)</a>
+        <a href="{% url 'rapport_achats_pdf' %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Achats (PDF)</a>
+        <a href="{% url 'rapport_stock_pdf' %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Stock (PDF)</a>
+    </div>
+</div>
+{% endblock %}

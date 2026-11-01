@@ -1,0 +1,107 @@
+{% extends 'base/base.html' %}
+{% block title %}Rapport des ventes{% endblock %}
+{% block page_title %}Rapport des ventes{% endblock %}
+{% block page_subtitle %}{{ debut|date:"d/m/Y" }} — {{ fin|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'rapports_accueil' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+    <a href="{% url 'rapport_ventes_pdf' %}?debut={{ debut|date:'Y-m-d' }}&fin={{ fin|date:'Y-m-d' }}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> Exporter en PDF</a>
+</div>
+
+<div class="pg-card reveal mb-3">
+    <div class="pg-card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Du</label>
+                <input type="date" name="debut" class="form-control" value="{{ debut|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Au</label>
+                <input type="date" name="fin" class="form-control" value="{{ fin|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i> Filtrer</button>
+                <a href="{% url 'rapport_ventes' %}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4 reveal">
+        <div class="stat-card stat-green">
+            <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-body"><span class="stat-label">Chiffre d'affaires</span><span class="stat-value" data-count="{{ total|floatformat:0 }}">0</span><span class="stat-foot">Ar</span></div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal d1">
+        <div class="stat-card stat-indigo">
+            <div class="stat-icon indigo"><i class="bi bi-receipt"></i></div>
+            <div class="stat-body"><span class="stat-label">Nombre de ventes</span><span class="stat-value" data-count="{{ nb }}">0</span><span class="stat-foot">transactions validées</span></div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal d2">
+        <div class="stat-card stat-amber">
+            <div class="stat-icon amber"><i class="bi bi-basket3"></i></div>
+            <div class="stat-body"><span class="stat-label">Panier moyen</span><span class="stat-value" data-count="{{ panier_moyen|floatformat:0 }}">0</span><span class="stat-foot">Ar</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-4 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-credit-card"></i> Modes de paiement</h3></div>
+            <div class="pg-card-body">
+                {% for mode in par_mode %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span>{{ mode.mode }}</span>
+                    <strong>{{ mode.total|floatformat:0 }} Ar</strong>
+                </div>
+                {% empty %}<p class="text-muted small mb-0">Aucune donnée.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-trophy"></i> Produits les plus vendus</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Médicament</th><th class="text-center">Quantité</th><th class="text-end">Montant</th></tr></thead>
+                        <tbody>
+                            {% for p in top %}
+                            <tr><td class="fw-semibold">{{ p.medicament__nom_commercial }}</td><td class="text-center">{{ p.quantite }}</td><td class="text-end">{{ p.total|floatformat:0 }} Ar</td></tr>
+                            {% empty %}<tr><td colspan="3"><div class="empty-state"><i class="bi bi-graph-up"></i><p>Aucune vente sur la période.</p></div></td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pg-card reveal mt-3">
+    <div class="pg-card-header"><h3><i class="bi bi-list-ul"></i> Détail des ventes ({{ nb }})</h3></div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead><tr><th>Date</th><th>N° vente</th><th>Client</th><th>Caissier</th><th>Paiement</th><th class="text-end">Montant</th></tr></thead>
+                <tbody>
+                    {% for v in ventes %}
+                    <tr>
+                        <td>{{ v.date_vente|date:"d/m/Y H:i" }}</td>
+                        <td><a href="{% url 'detail_vente' v.id %}" class="fw-semibold">{{ v.numero_vente }}</a></td>
+                        <td>{{ v.client.nom_complet|default:"Client de passage" }}</td>
+                        <td>{{ v.utilisateur.username }}</td>
+                        <td>{{ v.get_mode_paiement_display }}</td>
+                        <td class="text-end fw-semibold">{{ v.montant_total|floatformat:0 }} Ar</td>
+                    </tr>
+                    {% empty %}<tr><td colspan="6"><div class="empty-state"><i class="bi bi-receipt"></i><p>Aucune vente sur la période.</p></div></td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

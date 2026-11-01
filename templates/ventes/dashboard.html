@@ -1,0 +1,379 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Tableau de bord{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+{% block page_subtitle %}Toute l'activité de votre pharmacie en un coup d'œil{% endblock %}
+
+{% block content %}
+<section class="pg-hero reveal">
+    <h1>Bonjour {{ user.first_name|default:user.username }}</h1>
+    <p>Voici l'état de votre pharmacie au {{ aujourd_hui|date:"d F Y" }}. Ventes, stock, péremptions et statistiques sont mis à jour en temps réel.</p>
+    <div class="hero-actions">
+        <a href="{% url 'caisse' %}" class="btn btn-success"><i class="bi bi-cart-plus"></i> Encaisser une vente</a>
+        <a href="{% url 'liste_medicaments' %}" class="btn btn-light"><i class="bi bi-capsule"></i> Catalogue</a>
+        <a href="{% url 'rapports_accueil' %}" class="btn btn-outline-light"><i class="bi bi-graph-up-arrow"></i> Rapports</a>
+    </div>
+    <img src="{% static 'images/hero-pharma.svg' %}" alt="Illustration pharmacie" class="pg-hero-art">
+</section>
+
+<div class="row g-3">
+    <div class="col-6 col-lg-3 reveal">
+        <div class="stat-card stat-teal">
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label">Médicaments actifs</div>
+                    <div class="stat-value" data-count="{{ nb_medicaments }}">0</div>
+                </div>
+                <div class="stat-icon"><i class="bi bi-capsule"></i></div>
+            </div>
+            <div class="stat-foot"><i class="bi bi-check2-circle"></i> Catalogue disponible</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d1">
+        <div class="stat-card stat-green">
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label">Ventes du jour</div>
+                    <div class="stat-value" data-count="{{ nb_ventes }}">0</div>
+                </div>
+                <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+            </div>
+            <div class="stat-foot"><i class="bi bi-arrow-up-right"></i> Transactions validées</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d2">
+        <div class="stat-card stat-indigo">
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label">Recette du jour</div>
+                    <div class="stat-value" data-count="{{ montant_jour|floatformat:0 }}" data-suffix=" Ar">0 Ar</div>
+                </div>
+                <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="stat-foot"><i class="bi bi-wallet2"></i> Encaissements du jour</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d3">
+        <div class="stat-card stat-amber">
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label">Stocks faibles</div>
+                    <div class="stat-value" data-count="{{ stocks_faibles }}">0</div>
+                </div>
+                <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            </div>
+            <div class="stat-foot"><i class="bi bi-box-seam"></i> À réapprovisionner</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-6 col-lg-3 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-body d-flex align-items-center gap-3">
+                <div class="ai-ico ai-rose" style="width:44px;height:44px;font-size:1.15rem;"><i class="bi bi-calendar-x"></i></div>
+                <div>
+                    <div class="text-muted small">Péremptions proches</div>
+                    <div class="h4 mb-0 fw-bold" data-count="{{ lots_proches }}">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-body d-flex align-items-center gap-3">
+                <div class="ai-ico ai-teal" style="width:44px;height:44px;font-size:1.15rem;"><i class="bi bi-people"></i></div>
+                <div>
+                    <div class="text-muted small">Clients enregistrés</div>
+                    <div class="h4 mb-0 fw-bold" data-count="{{ nb_clients }}">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d2">
+        <div class="pg-card h-100">
+            <div class="pg-card-body d-flex align-items-center gap-3">
+                <div class="ai-ico ai-indigo" style="width:44px;height:44px;font-size:1.15rem;"><i class="bi bi-graph-up"></i></div>
+                <div>
+                    <div class="text-muted small">CA du mois</div>
+                    <div class="h4 mb-0 fw-bold" data-count="{{ ca_mois|floatformat:0 }}" data-suffix=" Ar">0 Ar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d3">
+        <div class="pg-card h-100">
+            <div class="pg-card-body d-flex align-items-center gap-3">
+                <div class="ai-ico ai-amber" style="width:44px;height:44px;font-size:1.15rem;"><i class="bi bi-basket"></i></div>
+                <div>
+                    <div class="text-muted small">Panier moyen</div>
+                    <div class="h4 mb-0 fw-bold" data-count="{{ panier_moyen|floatformat:0 }}" data-suffix=" Ar">0 Ar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-8 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h2><i class="bi bi-activity"></i> Ventes des 7 derniers jours</h2>
+                <span class="badge badge-soft-teal">{{ ventes_mois }} ventes ce mois</span>
+            </div>
+            <div class="pg-card-body">
+                <div class="chart-box"><canvas id="chartVentes" height="120"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h2><i class="bi bi-pie-chart"></i> Répartition du catalogue</h2>
+            </div>
+            <div class="pg-card-body">
+                <div class="chart-box"><canvas id="chartCategories" height="210"></canvas></div>
+                <div class="d-flex justify-content-around mt-3 small">
+                    <span><span class="badge badge-soft-green">OK</span> {{ repartition_stock.ok }}</span>
+                    <span><span class="badge badge-soft-amber">Faible</span> {{ repartition_stock.faible }}</span>
+                    <span><span class="badge badge-soft-rose">Épuisé</span> {{ repartition_stock.epuise }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-4 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h3><i class="bi bi-trophy"></i> Produits les plus vendus</h3>
+            </div>
+            <div class="pg-card-body">
+                {% for p in top_produits %}
+                <div class="mini-row">
+                    <span class="rank">{{ forloop.counter }}</span>
+                    <span class="mr-name">{{ p.medicament__nom_commercial }}</span>
+                    <span class="mr-val">{{ p.quantite }} u.</span>
+                </div>
+                {% empty %}
+                <div class="empty-state"><i class="bi bi-bar-chart"></i><p>Aucune vente enregistrée pour le moment.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h3><i class="bi bi-exclamation-triangle"></i> Alertes de stock</h3>
+                <a href="{% url 'alertes_stock' %}" class="btn btn-sm btn-soft">Tout voir</a>
+            </div>
+            <div class="pg-card-body">
+                {% for med in alertes %}
+                <div class="alert-item">
+                    <div class="ai-ico {% if med.stock_total <= 0 %}ai-rose{% else %}ai-amber{% endif %}"><i class="bi bi-capsule"></i></div>
+                    <div class="flex-grow-1">
+                        <p class="ai-title">{{ med.nom_commercial }}</p>
+                        <p class="ai-sub">Stock : {{ med.stock_total }} · Seuil : {{ med.seuil_alerte }}</p>
+                    </div>
+                    <span class="badge {% if med.stock_total <= 0 %}badge-soft-rose{% else %}badge-soft-amber{% endif %}">
+                        {% if med.stock_total <= 0 %}Épuisé{% else %}Faible{% endif %}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="empty-state"><i class="bi bi-shield-check"></i><p>Tous les stocks sont au-dessus du seuil.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 reveal d2">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h3><i class="bi bi-calendar-x"></i> Péremptions à surveiller</h3>
+                <a href="{% url 'produits_perimes' %}" class="btn btn-sm btn-soft">Détails</a>
+            </div>
+            <div class="pg-card-body">
+                {% for lot in lots_proches_liste %}
+                <div class="alert-item">
+                    <div class="ai-ico ai-rose"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="flex-grow-1">
+                        <p class="ai-title">{{ lot.medicament.nom_commercial }}</p>
+                        <p class="ai-sub">Lot {{ lot.numero_lot }} · {{ lot.quantite }} unités</p>
+                    </div>
+                    <span class="badge badge-soft-rose">{{ lot.date_peremption|date:"d/m/Y" }}</span>
+                </div>
+                {% empty %}
+                <div class="empty-state"><i class="bi bi-emoji-smile"></i><p>Aucun lot proche de la péremption.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-7 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h3><i class="bi bi-receipt"></i> Dernières ventes</h3>
+                <a href="{% url 'liste_ventes' %}" class="btn btn-sm btn-soft">Historique</a>
+            </div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead>
+                            <tr>
+                                <th>N° vente</th>
+                                <th>Client</th>
+                                <th>Caissier</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-end">Payé</th>
+                                <th class="text-end">Monnaie</th>
+                                <th class="text-end">Reçu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vente in recentes %}
+                            <tr>
+                                <td class="fw-semibold">{{ vente.numero_vente }}</td>
+                                <td>{{ vente.client.nom_complet|default:"Client de passage" }}</td>
+                                <td>{{ vente.utilisateur.username }}</td>
+                                <td class="text-end fw-bold text-success">{{ vente.montant_total|floatformat:0 }} Ar</td>
+                                <td class="text-end fw-semibold">{{ vente.montant_paye|floatformat:0 }} Ar</td>
+                                <td class="text-end text-warning fw-semibold">{{ vente.montant_rendu|floatformat:0 }} Ar</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{% url 'detail_vente' vente.id %}" class="btn btn-sm btn-light" title="Détails"><i class="bi bi-eye"></i></a>
+                                        <a href="{% url 'recu_vente' vente.id %}" class="btn btn-sm btn-soft" title="Reçu"><i class="bi bi-printer"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted py-4">Aucune vente pour l'instant.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 reveal d1">
+        <div class="pg-card h-100">
+            <div class="pg-card-header">
+                <h3><i class="bi bi-stars"></i> Médicaments vedettes</h3>
+                <a href="{% url 'liste_medicaments' %}" class="btn btn-sm btn-soft">Catalogue</a>
+            </div>
+            <div class="pg-card-body">
+                <div class="row g-3">
+                    {% for med in vedettes %}
+                    <div class="col-6">
+                        <div class="product-card h-100">
+                            <div class="pc-img"><img src="{{ med.image_url }}" alt="{{ med.nom_commercial }}"></div>
+                            <div class="pc-name">{{ med.nom_commercial }}</div>
+                            <div class="pc-sub">{{ med.get_forme_pharmaceutique_display }} · {{ med.dosage }}</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="pc-price">{{ med.prix_vente|floatformat:0 }} Ar</span>
+                                <span class="badge {% if med.stock_total > 0 %}badge-soft-green{% else %}badge-soft-rose{% endif %}">{{ med.stock_total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12"><div class="empty-state"><i class="bi bi-capsule"></i><p>Ajoutez des médicaments avec photos.</p></div></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_ventes|json_script:"chart-ventes" }}
+{{ chart_ca|json_script:"chart-ca" }}
+{{ chart_categories_labels|json_script:"chart-cat-labels" }}
+{{ chart_categories_data|json_script:"chart-cat-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+    const ventes = JSON.parse(document.getElementById('chart-ventes').textContent);
+    const ca = JSON.parse(document.getElementById('chart-ca').textContent);
+    const catLabels = JSON.parse(document.getElementById('chart-cat-labels').textContent);
+    const catData = JSON.parse(document.getElementById('chart-cat-data').textContent);
+
+    const ctx = document.getElementById('chartVentes');
+    if (ctx) {
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 280);
+        gradient.addColorStop(0, 'rgba(20, 184, 166, .32)');
+        gradient.addColorStop(1, 'rgba(20, 184, 166, 0)');
+        pgMakeChart('chartVentes', {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Nombre de ventes',
+                        data: ventes,
+                        borderColor: '#0d9488',
+                        backgroundColor: gradient,
+                        fill: true,
+                        pointBackgroundColor: '#0d9488',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Chiffre d\'affaires (Ar)',
+                        data: ca,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'transparent',
+                        borderDash: [6, 5],
+                        pointBackgroundColor: '#8b5cf6',
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (c) {
+                                if (c.dataset.yAxisID === 'y1') {
+                                    return c.dataset.label + ' : ' + Number(c.raw).toLocaleString('fr-FR') + ' Ar';
+                                }
+                                return c.dataset.label + ' : ' + c.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f7' } },
+                    y1: { beginAtZero: true, position: 'right', grid: { display: false }, ticks: { callback: v => Number(v).toLocaleString('fr-FR') } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    if (document.getElementById('chartCategories')) {
+        const palette = ['#14b8a6', '#6366f1', '#f59e0b', '#f43f5e', '#0ea5e9', '#8b5cf6', '#10b981', '#64748b'];
+        pgMakeChart('chartCategories', {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{ data: catData, backgroundColor: palette, borderWidth: 3, borderColor: '#fff', hoverOffset: 8 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '66%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 10 } } } }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+{% block title %}Vente {{ vente.numero_vente }}{% endblock %}
+{% block page_title %}Vente {{ vente.numero_vente }}{% endblock %}
+{% block page_subtitle %}Détail de la transaction et suivi des paiements{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'liste_ventes' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour aux ventes</a>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'recu_vente' vente.id %}" class="btn btn-success"><i class="bi bi-printer"></i> Reçu</a>
+        <a href="{% url 'recu_vente_pdf' vente.id %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Reçu PDF</a>
+        <a href="{% url 'facture_vente_pdf' vente.id %}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> Facture PDF</a>
+        {% if vente.statut == 'VALIDEE' %}
+        <a href="{% url 'creer_retour' vente.id %}" class="btn btn-warning"><i class="bi bi-arrow-counterclockwise"></i> Retour</a>
+        <form method="post" action="{% url 'annuler_vente' vente.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" data-confirm="Annuler cette vente et rembourser le client ?"><i class="bi bi-x-octagon"></i> Annuler</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="pg-card reveal h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-receipt"></i> Informations</h3></div>
+            <div class="pg-card-body">
+                <ul class="detail-list">
+                    <li><span class="k">N° vente</span><span class="v">{{ vente.numero_vente }}</span></li>
+                    <li><span class="k">Date</span><span class="v">{{ vente.date_vente|date:"d/m/Y H:i" }}</span></li>
+                    <li><span class="k">Caissier</span><span class="v">{{ vente.utilisateur.username }}</span></li>
+                    <li><span class="k">Client</span><span class="v">{{ vente.client.nom_complet|default:"Client de passage" }}</span></li>
+                    <li><span class="k">Paiement</span><span class="v">{{ vente.get_mode_paiement_display }}</span></li>
+                    <li><span class="k">Statut</span><span class="v">
+                        {% if vente.statut == 'VALIDEE' %}<span class="badge badge-soft-green">Validée</span>
+                        {% elif vente.statut == 'ANNULEE' %}<span class="badge badge-soft-rose">Annulée</span>
+                        {% else %}<span class="badge badge-soft-amber">{{ vente.get_statut_display }}</span>{% endif %}
+                    </span></li>
+                    <li><span class="k">Total</span><span class="v text-success">{{ vente.montant_total|floatformat:0 }} Ar</span></li>
+                    <li><span class="k">Montant reçu</span><span class="v">{{ vente.montant_paye|floatformat:0 }} Ar</span></li>
+                    <li><span class="k">Monnaie rendue</span><span class="v">{{ vente.montant_rendu|floatformat:0 }} Ar</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="pg-card reveal d1 h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-list-check"></i> Lignes de vente</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead>
+                            <tr><th>Médicament</th><th>Lot</th><th class="text-center">Quantité</th><th class="text-end">Prix unitaire</th><th class="text-end">Montant</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for ligne in vente.lignes.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="med-thumb"><img src="{{ ligne.medicament.image_url }}" alt=""></span>
+                                        <div>
+                                            <div class="fw-semibold">{{ ligne.medicament.nom_commercial }}</div>
+                                            <div class="small text-muted">{{ ligne.medicament.dosage }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ ligne.lot.numero_lot }}</td>
+                                <td class="text-center">{{ ligne.quantite }}</td>
+                                <td class="text-end">{{ ligne.prix_unitaire|floatformat:0 }} Ar</td>
+                                <td class="text-end fw-semibold">{{ ligne.montant_ligne|floatformat:0 }} Ar</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="pg-card reveal">
+            <div class="pg-card-header"><h3><i class="bi bi-credit-card"></i> Paiements</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Date</th><th>Mode</th><th>Statut</th><th class="text-end">Montant</th></tr></thead>
+                        <tbody>
+                            {% for p in vente.paiements.all %}
+                            <tr>
+                                <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
+                                <td>{{ p.get_mode_display }}</td>
+                                <td><span class="badge {% if p.statut == 'CONFIRME' %}badge-soft-green{% elif p.statut == 'REMBOURSE' %}badge-soft-rose{% else %}badge-soft-amber{% endif %}">{{ p.get_statut_display }}</span></td>
+                                <td class="text-end fw-semibold">{{ p.montant|floatformat:0 }} Ar</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">Aucun paiement enregistré.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="pg-card reveal d1">
+            <div class="pg-card-header"><h3><i class="bi bi-arrow-counterclockwise"></i> Retours & annulations</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Date</th><th>Type</th><th class="text-center">Qté</th><th class="text-end">Remboursé</th></tr></thead>
+                        <tbody>
+                            {% for r in vente.retours.all %}
+                            <tr>
+                                <td>{{ r.date_retour|date:"d/m/Y H:i" }}</td>
+                                <td>{{ r.get_type_operation_display }}</td>
+                                <td class="text-center">{{ r.quantite_totale }}</td>
+                                <td class="text-end">{{ r.montant_rembourse|floatformat:0 }} Ar</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">Aucun retour.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+{% block title %}Retour {{ vente.numero_vente }}{% endblock %}
+{% block page_title %}Retour de vente{% endblock %}
+{% block page_subtitle %}Vente {{ vente.numero_vente }} · {{ vente.date_vente|date:"d/m/Y H:i" }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'detail_vente' vente.id %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour à la vente</a>
+</div>
+
+<form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-lg-8">
+        <div class="pg-card reveal">
+            <div class="pg-card-header"><h3><i class="bi bi-box-arrow-in-left"></i> Produits à retourner</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead>
+                            <tr>
+                                <th>Médicament</th>
+                                <th>Lot</th>
+                                <th class="text-center">Vendu</th>
+                                <th class="text-center">Déjà retourné</th>
+                                <th class="text-center">Disponible</th>
+                                <th class="text-center" style="width:130px;">À retourner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in lignes %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="med-thumb"><img src="{{ item.ligne.medicament.image_url }}" alt=""></span>
+                                        <div>
+                                            <div class="fw-semibold">{{ item.ligne.medicament.nom_commercial }}</div>
+                                            <div class="small text-muted">{{ item.ligne.prix_unitaire|floatformat:0 }} Ar / unité</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.ligne.lot.numero_lot }}</td>
+                                <td class="text-center">{{ item.ligne.quantite }}</td>
+                                <td class="text-center">{{ item.deja_retournee }}</td>
+                                <td class="text-center"><span class="badge badge-soft-teal">{{ item.restante }}</span></td>
+                                <td>
+                                    <input type="number" name="quantite_{{ item.ligne.id }}" class="form-control form-control-sm text-center"
+                                           min="0" max="{{ item.restante }}" value="0" {% if item.restante <= 0 %}disabled{% endif %}>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="pg-card reveal d1">
+            <div class="pg-card-header"><h3><i class="bi bi-info-circle"></i> Détails du retour</h3></div>
+            <div class="pg-card-body">
+                <div class="mb-3">
+                    <label class="form-label">Motif <span class="text-danger">*</span></label>
+                    <textarea name="motif" class="form-control" rows="4" required placeholder="Ex. : erreur de délivrance, produit défectueux…"></textarea>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="remettre_en_stock" id="remettre" checked>
+                    <label class="form-check-label small" for="remettre">Réintégrer au stock si le lot est encore valide</label>
+                </div>
+                <div class="alert alert-warning small">
+                    <i class="bi bi-exclamation-triangle"></i> Le remboursement est calculé automatiquement selon le prix appliqué lors de la vente.
+                </div>
+                <button type="submit" class="btn btn-warning w-100"><i class="bi bi-check-circle"></i> Enregistrer le retour</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

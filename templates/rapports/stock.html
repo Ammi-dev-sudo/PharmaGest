@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+{% block title %}Rapport de stock{% endblock %}
+{% block page_title %}Rapport de stock{% endblock %}
+{% block page_subtitle %}Valorisation et disponibilité des médicaments{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'rapports_accueil' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+    <a href="{% url 'rapport_stock_pdf' %}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> Exporter en PDF</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4 reveal">
+        <div class="stat-card stat-green">
+            <div class="stat-icon green"><i class="bi bi-safe2"></i></div>
+            <div class="stat-body"><span class="stat-label">Valeur du stock</span><span class="stat-value" data-count="{{ valeur_totale|floatformat:0 }}">0</span><span class="stat-foot">Ar au prix d'achat</span></div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal d1">
+        <div class="stat-card stat-indigo">
+            <div class="stat-icon indigo"><i class="bi bi-capsule"></i></div>
+            <div class="stat-body"><span class="stat-label">Références actives</span><span class="stat-value" data-count="{{ nb }}">0</span><span class="stat-foot">médicaments</span></div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal d2">
+        <div class="stat-card stat-rose">
+            <div class="stat-icon rose"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-body"><span class="stat-label">En alerte</span><span class="stat-value" data-count="{{ alertes|length }}">0</span><span class="stat-foot">à réapprovisionner</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="pg-card reveal mt-3">
+    <div class="pg-card-header"><h3><i class="bi bi-box-seam"></i> Détail du stock</h3></div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead><tr><th>Médicament</th><th>Catégorie</th><th class="text-center">Seuil</th><th class="text-center">Stock</th><th class="text-end">Prix achat</th><th class="text-end">Valeur</th><th>État</th></tr></thead>
+                <tbody>
+                    {% for l in lignes %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="med-thumb"><img src="{{ l.medicament.image_url }}" alt=""></span>
+                                <div>
+                                    <div class="fw-semibold">{{ l.medicament.nom_commercial }}</div>
+                                    <div class="small text-muted">{{ l.medicament.dosage }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ l.medicament.categorie.nom }}</td>
+                        <td class="text-center">{{ l.medicament.seuil_alerte }}</td>
+                        <td class="text-center"><strong>{{ l.stock }}</strong></td>
+                        <td class="text-end">{{ l.medicament.prix_achat|floatformat:0 }} Ar</td>
+                        <td class="text-end">{{ l.valeur|floatformat:0 }} Ar</td>
+                        <td>
+                            {% if l.medicament.est_epuise %}<span class="badge badge-soft-rose">Épuisé</span>
+                            {% elif l.medicament.est_en_alerte %}<span class="badge badge-soft-amber">Stock faible</span>
+                            {% else %}<span class="badge badge-soft-green">OK</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}<tr><td colspan="7"><div class="empty-state"><i class="bi bi-box"></i><p>Aucun médicament actif.</p></div></td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ client.nom_complet }}{% endblock %}
+{% block page_title %}{{ client.nom_complet }}{% endblock %}
+{% block page_subtitle %}Fiche client et historique des achats{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'liste_clients' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+    <a href="{% url 'modifier_client' client.id %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Modifier</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="pg-card reveal h-100">
+            <div class="pg-card-header"><h3><i class="bi bi-person-vcard"></i> Coordonnées</h3></div>
+            <div class="pg-card-body">
+                <ul class="detail-list">
+                    <li><span class="k">Nom</span><span class="v">{{ client.nom_complet }}</span></li>
+                    <li><span class="k">Téléphone</span><span class="v">{{ client.telephone|default:"—" }}</span></li>
+                    <li><span class="k">E-mail</span><span class="v">{{ client.email|default:"—" }}</span></li>
+                    <li><span class="k">Adresse</span><span class="v">{{ client.adresse|default:"—" }}</span></li>
+                    <li><span class="k">Statut</span><span class="v">{% if client.actif %}<span class="badge badge-soft-green">Actif</span>{% else %}<span class="badge badge-soft-rose">Inactif</span>{% endif %}</span></li>
+                    <li><span class="k">Client depuis</span><span class="v">{{ client.date_creation|date:"d/m/Y" }}</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="stat-card stat-teal">
+                    <div class="stat-row"><div><div class="stat-label">Ventes</div><div class="stat-value" data-count="{{ nb_ventes }}">0</div></div><div class="stat-icon"><i class="bi bi-receipt"></i></div></div>
+                    <div class="stat-foot"><i class="bi bi-check2-circle"></i> Transactions validées</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card stat-green">
+                    <div class="stat-row"><div><div class="stat-label">Total achats</div><div class="stat-value" data-count="{{ total_achats|floatformat:0 }}">0</div></div><div class="stat-icon"><i class="bi bi-cash-stack"></i></div></div>
+                    <div class="stat-foot"><i class="bi bi-wallet2"></i> Ar dépensés</div>
+                </div>
+            </div>
+        </div>
+        <div class="pg-card reveal d1">
+            <div class="pg-card-header"><h3><i class="bi bi-clock-history"></i> Historique des ventes</h3></div>
+            <div class="pg-card-body p-0">
+                <div class="pg-table-wrap">
+                    <table class="pg-table">
+                        <thead><tr><th>Date</th><th>N° vente</th><th>Paiement</th><th class="text-end">Montant</th><th></th></tr></thead>
+                        <tbody>
+                            {% for v in ventes %}
+                            <tr>
+                                <td>{{ v.date_vente|date:"d/m/Y H:i" }}</td>
+                                <td class="fw-semibold">{{ v.numero_vente }}</td>
+                                <td>{{ v.get_mode_paiement_display }}</td>
+                                <td class="text-end">{{ v.montant_total|floatformat:0 }} Ar</td>
+                                <td class="text-end"><a href="{% url 'detail_vente' v.id %}" class="btn btn-sm btn-soft"><i class="bi bi-eye"></i></a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5"><div class="empty-state"><i class="bi bi-receipt"></i><p>Aucune vente pour ce client.</p></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

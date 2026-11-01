@@ -1,0 +1,33 @@
+{% extends 'base/base.html' %}
+{% block title %}Nouvelle commande{% endblock %}
+{% block page_title %}Nouvelle commande d'achat{% endblock %}
+{% block page_subtitle %}Choisissez le fournisseur et ajoutez les produits{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'liste_commandes' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour</a>
+</div>
+<div class="row justify-content-center">
+    <div class="col-lg-7 reveal">
+        <div class="pg-card">
+            <div class="pg-card-header"><h3><i class="bi bi-bag-plus"></i> Informations de commande</h3></div>
+            <div class="pg-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|striptags }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Créer la commande</button>
+                        <a href="{% url 'liste_commandes' %}" class="btn btn-light">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

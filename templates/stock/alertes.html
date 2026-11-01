@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+{% block title %}Alertes de stock{% endblock %}
+{% block page_title %}Alertes de stock{% endblock %}
+{% block page_subtitle %}Médicaments à réapprovisionner en priorité{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-exclamation-triangle-fill"></i></span> Alertes de stock</h1>
+        <p>{{ alertes|length }} médicament(s) sous le seuil d'alerte</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'etat_stock' %}" class="btn btn-light"><i class="bi bi-box-seam"></i> Voir le stock</a>
+        <a href="{% url 'creer_commande' %}" class="btn btn-primary"><i class="bi bi-cart-plus"></i> Commander</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for med in alertes %}
+    <div class="col-sm-6 col-lg-4 reveal">
+        <div class="pg-card h-100">
+            <div class="pg-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="med-thumb lg"><img src="{{ med.image_url }}" alt=""></div>
+                    <span class="badge {% if med.stock_total <= 0 %}badge-soft-rose{% else %}badge-soft-amber{% endif %}">
+                        {% if med.stock_total <= 0 %}Épuisé{% else %}Stock faible{% endif %}
+                    </span>
+                </div>
+                <h3 class="h5 fw-bold mb-1">{{ med.nom_commercial }}</h3>
+                <p class="text-muted small mb-3">{{ med.categorie.nom }} · {{ med.get_forme_pharmaceutique_display }} {{ med.dosage }}</p>
+                <div class="d-flex justify-content-between mb-2">
+                    <div><div class="small text-muted">Stock actuel</div><div class="h4 mb-0 fw-bold text-warning">{{ med.stock_total }}</div></div>
+                    <div class="text-end"><div class="small text-muted">Seuil d'alerte</div><div class="h4 mb-0 fw-bold">{{ med.seuil_alerte }}</div></div>
+                </div>
+                <div class="pg-progress amber"><span style="width:{% if med.stock_total <= 0 %}0{% else %}{% widthratio med.stock_total med.seuil_alerte 100 %}{% endif %}%"></span></div>
+                <a href="{% url 'creer_commande' %}" class="btn btn-sm btn-warning w-100 mt-3"><i class="bi bi-cart-plus"></i> Créer une commande</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="pg-card"><div class="empty-state"><i class="bi bi-shield-check"></i><p>Aucune alerte : tous les stocks sont au-dessus du seuil.</p></div></div></div>
+    {% endfor %}
+</div>
+{% endblock %}

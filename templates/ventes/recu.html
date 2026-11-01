@@ -1,0 +1,103 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Reçu {{ vente.numero_vente }}{% endblock %}
+{% block page_title %}Reçu de vente{% endblock %}
+{% block page_subtitle %}Transaction validée — reçu PDF généré automatiquement{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+    <a href="{% url 'caisse' %}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Retour à la caisse</a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'detail_vente' vente.id %}" class="btn btn-outline-primary"><i class="bi bi-info-circle"></i> Détails</a>
+        <a href="{% url 'recu_vente_pdf' vente.id %}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Télécharger le reçu</a>
+        <a href="{% url 'facture_vente_pdf' vente.id %}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> Facture PDF</a>
+        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer le reçu</button>
+    </div>
+</div>
+
+<div class="receipt-wrap">
+    <div class="receipt">
+        <div class="receipt-head">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div class="rh-brand">
+                    <span class="rh-logo"><i class="bi bi-capsule-pill"></i></span>
+                    <div>
+                        <h2>{{ pharmacie.nom }}</h2>
+                        <small>{{ pharmacie.adresse }}</small>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-light text-success fw-bold">PAYÉ</span>
+                </div>
+            </div>
+            <div class="rh-meta">
+                <div><small>Reçu N°</small><strong>{{ vente.numero_vente }}</strong></div>
+                <div><small>Date</small><strong>{{ vente.date_vente|date:"d/m/Y à H:i" }}</strong></div>
+                <div><small>Caissier</small><strong>{{ vente.utilisateur.get_full_name|default:vente.utilisateur.username }}</strong></div>
+                <div><small>Client</small><strong>{{ vente.client.nom_complet|default:"Client de passage" }}</strong></div>
+            </div>
+        </div>
+
+        <div class="receipt-body">
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th>Désignation</th>
+                        <th class="text-center">Qté</th>
+                        <th class="text-end">Prix unit.</th>
+                        <th class="text-end">Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in vente.lignes.all %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ ligne.medicament.nom_commercial }}</div>
+                            <div class="text-muted" style="font-size:.7rem;">{{ ligne.medicament.dosage }} · Lot {{ ligne.lot.numero_lot }}</div>
+                        </td>
+                        <td class="text-center">{{ ligne.quantite }}</td>
+                        <td class="text-end">{{ ligne.prix_unitaire|floatformat:0 }} Ar</td>
+                        <td class="text-end fw-semibold">{{ ligne.montant_ligne|floatformat:0 }} Ar</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="receipt-total">
+                <div class="line"><span>Total à payer</span><span>{{ vente.montant_total|floatformat:0 }} Ar</span></div>
+                <div class="line"><span>Montant reçu ({{ vente.get_mode_paiement_display }})</span><span>{{ vente.montant_paye|floatformat:0 }} Ar</span></div>
+                <div class="line"><span>Monnaie rendue</span><span>{{ vente.montant_rendu|floatformat:0 }} Ar</span></div>
+                <div class="line grand"><span>Net à payer</span><span>{{ vente.montant_total|floatformat:0 }} Ar</span></div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3 text-muted" style="font-size:.72rem;">
+                <span>{{ pharmacie.telephone }} · {{ pharmacie.email }}</span>
+                <span>{{ vente.date_vente|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+
+        <div class="receipt-foot">
+            <div class="mb-1 fw-semibold text-dark">Merci de votre confiance</div>
+            <div>Les médicaments ne sont ni repris ni échangés sans ordonnance.</div>
+            <div class="mt-2">{{ pharmacie.nif }} · {{ pharmacie.stat }}</div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3 no-print">
+        <small class="text-muted">Reçu généré automatiquement par PharmaGest · Ce document tient lieu de preuve d'achat.</small>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if request.GET.auto_pdf %}
+<script>
+window.addEventListener('load', function () {
+    const frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    frame.src = "{% url 'recu_vente_pdf' vente.id %}";
+    document.body.appendChild(frame);
+});
+</script>
+{% endif %}
+{% endblock %}

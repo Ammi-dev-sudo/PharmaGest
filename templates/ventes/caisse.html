@@ -1,0 +1,419 @@
+{% extends 'base/base.html' %}
+{% load l10n %}
+{% block title %}Caisse{% endblock %}
+{% block page_title %}Caisse{% endblock %}
+{% block page_subtitle %}Recherchez, scannez et encaissez rapidement{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="pg-card reveal">
+            <div class="pg-card-header">
+                <h2><i class="bi bi-search"></i> Produits disponibles</h2>
+                <span class="badge badge-soft-teal">{{ medicaments|length }} médicament(s)</span>
+            </div>
+            <div class="pg-card-body">
+                <form method="get" class="row g-2 mb-3">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                            <input type="text" id="liveSearch" name="q" class="form-control" autofocus
+                                   placeholder="Nom, principe actif ou code-barres…" value="{{ query }}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Rechercher</button>
+                    </div>
+                    {% if query %}
+                    <div class="col-auto"><a href="{% url 'caisse' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a></div>
+                    {% endif %}
+                </form>
+
+                <div class="quick-sale mb-3">
+                    <form method="post" action="{% url 'ajouter_selection' %}" id="quickForm" class="row g-2 align-items-end">
+                        {% csrf_token %}
+                        <div class="col-12 col-lg-4">
+                            <label class="form-label">Sélectionner un médicament</label>
+                            <select name="medicament" id="quickMedicament" class="form-select form-select-sm" required>
+                                <option value="">— Choisir un médicament —</option>
+                                {% for med in medicaments %}
+                                <option value="{{ med.id }}" data-price="{{ med.prix_vente|floatformat:"2u" }}" data-stock="{{ med.stock_disponible|unlocalize }}" {% if med.stock_disponible <= 0 %}disabled{% endif %}>
+                                    {{ med.nom_commercial }} · {{ med.dosage }} — {{ med.prix_vente|floatformat:0 }} Ar · Stock : {{ med.stock_disponible }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-4 col-lg-2">
+                            <label class="form-label">Quantité</label>
+                            <input type="number" name="quantite" id="quickQuantite" class="form-control form-control-sm" value="1" min="1" required>
+                            <div class="form-text mt-1" id="quickStock">Stock : —</div>
+                        </div>
+                        <div class="col-4 col-lg-2">
+                            <div class="qs-info"><span>Prix unitaire</span><strong id="quickPrix">—</strong></div>
+                        </div>
+                        <div class="col-4 col-lg-2">
+                            <div class="qs-info"><span>Total ligne</span><strong id="quickTotal">0 Ar</strong></div>
+                        </div>
+                        <div class="col-12 col-lg-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-cart-plus"></i> Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <div class="btn-group btn-group-sm med-view-toggle" role="group" aria-label="Mode d'affichage">
+                        <button type="button" class="btn btn-primary" data-view="list">
+                            <i class="bi bi-list-ul"></i> Liste
+                        </button>
+                        <button type="button" class="btn btn-light" data-view="grid">
+                            <i class="bi bi-grid-3x3-gap"></i> Grille
+                        </button>
+                    </div>
+                    <small class="text-muted"><i class="bi bi-hand-index-thumb"></i> Double-cliquez sur un médicament pour l'ajouter (+1)</small>
+                </div>
+
+                <div id="medList">
+                    <h6 class="mb-2">Liste des médicaments <span class="text-muted fw-normal">({{ medicaments|length }})</span></h6>
+                    <div class="table-responsive med-list-wrap">
+                        <table class="table table-hover align-middle med-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Médicament</th>
+                                    <th class="d-none d-md-table-cell">Forme / Dosage</th>
+                                    <th class="text-end">Prix</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for med in medicaments %}
+                                <tr class="med-row {% if med.stock_disponible <= 0 %}out{% endif %}"
+                                    data-search="{{ med.nom_commercial }} {{ med.denomination_generique }} {{ med.code_barres }}"
+                                    {% if med.stock_disponible > 0 %}title="Double-cliquez pour ajouter au panier"{% endif %}>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="med-thumb"><img src="{{ med.image_url }}" alt="{{ med.nom_commercial }}" loading="lazy"></div>
+                                            <div>
+                                                <div class="med-row-name">{{ med.nom_commercial }}</div>
+                                                <div class="med-row-sub">
+                                                    {{ med.categorie.nom }}
+                                                    {% if med.denomination_generique %}· {{ med.denomination_generique }}{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <div class="med-row-sub">{{ med.get_forme_pharmaceutique_display }} · {{ med.dosage }}</div>
+                                    </td>
+                                    <td class="text-end fw-bold text-teal">{{ med.prix_vente|floatformat:0 }} Ar</td>
+                                    <td class="text-center">
+                                        {% if med.stock_disponible <= 0 %}
+                                        <span class="badge badge-soft-rose">0 — Épuisé</span>
+                                        {% elif med.stock_disponible <= med.seuil_alerte %}
+                                        <span class="badge badge-soft-amber">{{ med.stock_disponible }} rest.</span>
+                                        {% else %}
+                                        <span class="badge badge-soft-green">{{ med.stock_disponible }} en stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <form method="post" action="{% url 'ajouter_au_panier' med.id %}" class="med-add-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantite" value="1">
+                                            <button type="submit" class="btn btn-sm btn-primary" {% if med.stock_disponible <= 0 %}disabled{% endif %}>
+                                                <i class="bi bi-cart-plus"></i> Ajouter
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state"><i class="bi bi-search"></i><p>Aucun médicament ne correspond à votre recherche.</p></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="product-grid d-none" id="medGrid">
+                    {% for med in medicaments %}
+                    <div class="product-card {% if med.stock_disponible <= 0 %}out{% endif %}" data-search="{{ med.nom_commercial }} {{ med.denomination_generique }} {{ med.code_barres }}" {% if med.stock_disponible > 0 %}title="Double-cliquez pour ajouter au panier"{% endif %}>
+                        <span class="pc-stock">
+                            {% if med.stock_disponible <= 0 %}
+                            <span class="badge badge-soft-rose">Épuisé</span>
+                            {% elif med.stock_disponible <= med.seuil_alerte %}
+                            <span class="badge badge-soft-amber">{{ med.stock_disponible }} rest.</span>
+                            {% else %}
+                            <span class="badge badge-soft-green">{{ med.stock_disponible }} en stock</span>
+                            {% endif %}
+                        </span>
+                        <div class="pc-img"><img src="{{ med.image_url }}" alt="{{ med.nom_commercial }}" loading="lazy"></div>
+                        <div>
+                            <div class="pc-name">{{ med.nom_commercial }}</div>
+                            <div class="pc-sub">{{ med.get_forme_pharmaceutique_display }} · {{ med.dosage }}</div>
+                            <div class="pc-sub text-truncate">{{ med.categorie.nom }}{% if med.laboratoire %} · {{ med.laboratoire }}{% endif %}</div>
+                            <div class="pc-stock-line">Stock : <strong>{{ med.stock_disponible }}</strong> unité(s)</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="pc-price">{{ med.prix_vente|floatformat:0 }} Ar</span>
+                            <span class="pc-line-total" data-price="{{ med.prix_vente|floatformat:"2u" }}">{{ med.prix_vente|floatformat:0 }} Ar</span>
+                        </div>
+                        <form method="post" action="{% url 'ajouter_au_panier' med.id %}" class="pc-form">
+                            {% csrf_token %}
+                            <input type="number" name="quantite" value="1" min="1" max="{{ med.stock_disponible|unlocalize }}" class="form-control form-control-sm" {% if med.stock_disponible <= 0 %}disabled{% endif %}>
+                            <button type="submit" class="pc-cart-btn" {% if med.stock_disponible <= 0 %}disabled{% endif %}>
+                                <i class="bi bi-cart-plus"></i> Ajouter
+                            </button>
+                        </form>
+                        {% if med.stock_disponible > 0 %}
+                        <div class="pc-hint"><i class="bi bi-hand-index-thumb"></i> Double-clic = +1 au panier</div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="empty-state"><i class="bi bi-search"></i><p>Aucun médicament ne correspond à votre recherche.</p></div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div id="liveEmpty" style="display:none;">
+                    <div class="empty-state"><i class="bi bi-search"></i><p>Aucun produit ne correspond à la recherche.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="cart-panel reveal d1">
+            <div class="pg-card">
+                <div class="pg-card-header">
+                    <h2><i class="bi bi-basket3"></i> Panier</h2>
+                    <span class="badge badge-soft-green" id="cartBadge">{{ nb_articles }} article(s)</span>
+                </div>
+                <div class="pg-card-body" style="max-height: 330px; overflow-y: auto;">
+                    {% for item in panier %}
+                    <div class="cart-item">
+                        <div class="ci-ico"><i class="bi bi-capsule"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="ci-name">
+                                {{ item.medicament_nom }}
+                                <span class="ci-qty-badge">×{{ item.quantite }}</span>
+                            </div>
+                            <div class="ci-meta">Lot {{ item.lot_numero }} · {{ item.prix_unitaire|floatformat:0 }} Ar l'unité</div>
+                            <form method="post" action="{% url 'modifier_quantite' forloop.counter0 %}" class="ci-qty d-flex gap-1 mt-1">
+                                {% csrf_token %}
+                                <input type="number" name="quantite" value="{{ item.quantite }}" min="1" {% if item.lot_stock %}max="{{ item.lot_stock }}"{% endif %} class="form-control form-control-sm" title="Quantité">
+                                <button type="submit" class="btn btn-sm btn-light py-0 px-1" title="Mettre à jour la quantité"><i class="bi bi-check2"></i></button>
+                            </form>
+                        </div>
+                        <div class="text-end">
+                            <div class="ci-total">{{ item.montant_ligne|floatformat:0 }} Ar</div>
+                            <form method="post" action="{% url 'retirer_du_panier' forloop.counter0 %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm text-danger p-0" title="Retirer"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state"><i class="bi bi-basket"></i><p>Votre panier est vide.<br>Ajoutez des médicaments pour commencer.</p></div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pg-card mt-3">
+                <div class="pg-card-body">
+                    <div class="cart-total">
+                        <div>
+                            <div class="lbl">Total à payer</div>
+                            <div class="val">{{ total|floatformat:0 }} Ar</div>
+                        </div>
+                        <i class="bi bi-wallet2 fs-2 opacity-75"></i>
+                    </div>
+                    <form method="post" action="{% url 'valider_vente' %}" id="formVente">
+                        {% csrf_token %}
+                        <input type="hidden" name="vente_token" value="{{ vente_token }}">
+                        <div class="mb-2">
+                            <label class="form-label">Client</label>
+                            <select name="client" class="form-select form-select-sm">
+                                <option value="">Client de passage</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.nom_complet }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Mode de paiement</label>
+                            <div class="payment-cash"><i class="bi bi-cash-coin"></i> Espèces uniquement</div>
+                            <input type="hidden" name="mode_paiement" value="ESPECES">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Montant reçu du client (espèces)</label>
+                            <input type="number" name="montant_paye" id="montantPaye" class="form-control form-control-sm"
+                                   placeholder="0" step="1" min="0" inputmode="numeric" required>
+                            <div class="d-flex gap-1 mt-2">
+                                <button type="button" class="btn btn-sm btn-light flex-fill" data-fill="{{ total|default:0|floatformat:"0u" }}">Exact</button>
+                                <button type="button" class="btn btn-sm btn-light flex-fill" data-fill="10000">10 000</button>
+                                <button type="button" class="btn btn-sm btn-light flex-fill" data-fill="20000">20 000</button>
+                                <button type="button" class="btn btn-sm btn-light flex-fill" data-fill="50000">50 000</button>
+                            </div>
+                            <div class="form-text mt-2" id="monnaie">Monnaie à rendre : 0 Ar</div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100" {% if not panier %}disabled{% endif %}>
+                            <i class="bi bi-check-circle"></i> Valider et générer le reçu
+                        </button>
+                        {% if panier %}
+                        <button type="submit" formaction="{% url 'vider_panier' %}" class="btn btn-light w-100 mt-2 btn-sm">
+                            <i class="bi bi-x-circle"></i> Vider le panier
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const fmt = new Intl.NumberFormat('fr-FR');
+    const input = document.getElementById('montantPaye');
+    const monnaie = document.getElementById('monnaie');
+    const total = {{ total|default:0|floatformat:"2u" }};
+
+    function refreshMonnaie() {
+        if (!input || !monnaie) return;
+        const diff = (parseFloat(input.value) || 0) - total;
+        if (diff < 0) {
+            monnaie.innerHTML = 'Reste à payer : <strong>' + fmt.format(Math.abs(diff)) + ' Ar</strong>';
+            monnaie.style.color = '#f43f5e';
+        } else {
+            monnaie.innerHTML = 'Monnaie à rendre : <strong>' + fmt.format(diff) + ' Ar</strong>';
+            monnaie.style.color = '#0f766e';
+        }
+    }
+
+    if (input && monnaie) {
+        input.addEventListener('input', refreshMonnaie);
+        document.querySelectorAll('[data-fill]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                input.value = this.dataset.fill;
+                input.dispatchEvent(new Event('input'));
+            });
+        });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('formVente').requestSubmit();
+            }
+        });
+        refreshMonnaie();
+    }
+
+    document.querySelectorAll('.product-card .pc-form').forEach(function (form) {
+        const qty = form.querySelector('input[name="quantite"]');
+        const line = form.closest('.product-card').querySelector('.pc-line-total');
+        if (!qty || !line) return;
+        const price = parseFloat(line.dataset.price) || 0;
+        const refresh = function () {
+            const q = parseInt(qty.value, 10) || 0;
+            line.textContent = fmt.format(price * q) + ' Ar';
+        };
+        qty.addEventListener('input', refresh);
+        refresh();
+    });
+
+    document.querySelectorAll('.product-card').forEach(function (card) {
+        const form = card.querySelector('.pc-form');
+        if (!form) return;
+        const btn = form.querySelector('.pc-cart-btn');
+        if (btn && btn.disabled) return;
+        card.addEventListener('dblclick', function (e) {
+            if (e.target.closest('input, button, select, a, label')) return;
+            const qty = form.querySelector('input[name="quantite"]');
+            if (qty) qty.value = 1;
+            form.submit();
+        });
+    });
+
+    document.querySelectorAll('.med-row').forEach(function (row) {
+        const form = row.querySelector('.med-add-form');
+        if (!form) return;
+        const btn = form.querySelector('button');
+        if (btn && btn.disabled) return;
+        row.addEventListener('dblclick', function (e) {
+            if (e.target.closest('input, button, select, a, label, form')) return;
+            form.submit();
+        });
+    });
+
+    const medList = document.getElementById('medList');
+    const medGrid = document.getElementById('medGrid');
+    const viewButtons = document.querySelectorAll('.med-view-toggle [data-view]');
+
+    function setView(view) {
+        if (!medList || !medGrid) return;
+        const isList = view === 'list';
+        medList.classList.toggle('d-none', !isList);
+        medGrid.classList.toggle('d-none', isList);
+        viewButtons.forEach(function (btn) {
+            const active = btn.dataset.view === view;
+            btn.classList.toggle('btn-primary', active);
+            btn.classList.toggle('btn-light', !active);
+        });
+    }
+
+    viewButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () { setView(btn.dataset.view); });
+    });
+
+    setView('list');
+
+    const quickMed = document.getElementById('quickMedicament');
+    const quickQty = document.getElementById('quickQuantite');
+    const quickPrix = document.getElementById('quickPrix');
+    const quickTotal = document.getElementById('quickTotal');
+    const quickStock = document.getElementById('quickStock');
+    const quickForm = document.getElementById('quickForm');
+
+    function refreshQuick() {
+        if (!quickMed) return;
+        const opt = quickMed.selectedOptions[0];
+        const price = parseFloat(opt && opt.dataset.price) || 0;
+        const stock = parseInt(opt && opt.dataset.stock, 10) || 0;
+        quickQty.max = stock || '';
+        const q = parseInt(quickQty.value, 10) || 0;
+        quickPrix.textContent = price ? fmt.format(price) + ' Ar' : '—';
+        quickTotal.textContent = price ? fmt.format(price * q) + ' Ar' : '0 Ar';
+        if (quickStock) {
+            quickStock.textContent = opt && opt.value ? 'Stock disponible : ' + fmt.format(stock) : 'Stock : —';
+            quickStock.style.color = opt && opt.value && stock <= 5 ? '#f43f5e' : '';
+        }
+    }
+
+    if (quickMed) {
+        quickMed.addEventListener('change', function () {
+            quickQty.value = 1;
+            refreshQuick();
+        });
+        quickQty.addEventListener('input', refreshQuick);
+        quickForm.addEventListener('submit', function (e) {
+            const opt = quickMed.selectedOptions[0];
+            if (!opt || !opt.value) {
+                e.preventDefault();
+                quickMed.focus();
+                return;
+            }
+            const stock = parseInt(opt.dataset.stock, 10) || 0;
+            if ((parseInt(quickQty.value, 10) || 0) > stock) {
+                e.preventDefault();
+                quickQty.focus();
+            }
+        });
+        refreshQuick();
+    }
+})();
+</script>
+{% endblock %}

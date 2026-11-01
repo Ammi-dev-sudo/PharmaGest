@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+{% block title %}Utilisateurs{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+{% block page_subtitle %}Comptes, rôles et permissions{% endblock %}
+
+{% block content %}
+<div class="pg-page-head reveal">
+    <div>
+        <h1><span class="head-ico"><i class="bi bi-person-gear"></i></span> Utilisateurs</h1>
+        <p>{{ page_obj.paginator.count }} compte(s) enregistré(s)</p>
+    </div>
+    {% if perms.utilisateurs.add_customuser %}
+    <a href="{% url 'ajouter_utilisateur' %}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Nouvel utilisateur</a>
+    {% endif %}
+</div>
+
+<div class="pg-card reveal">
+    <div class="pg-card-header">
+        <form method="get" class="d-flex gap-2 flex-grow-1">
+            <input type="text" name="q" class="form-control" placeholder="Nom, identifiant ou rôle…" value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            {% if query %}<a href="{% url 'liste_utilisateurs' %}" class="btn btn-light"><i class="bi bi-x-lg"></i></a>{% endif %}
+        </form>
+    </div>
+    <div class="pg-card-body p-0">
+        <div class="pg-table-wrap">
+            <table class="pg-table">
+                <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Téléphone</th><th>E-mail</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    {% for u in utilisateurs %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="pg-avatar-sm">{{ u.username|slice:":2"|upper }}</span>
+                                <div>
+                                    <div class="fw-semibold">{{ u.get_full_name|default:u.username }}</div>
+                                    <div class="small text-muted">@{{ u.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-soft-indigo">{{ u.get_role_display }}</span></td>
+                        <td>{{ u.telephone|default:"—" }}</td>
+                        <td>{{ u.email|default:"—" }}</td>
+                        <td>{% if u.is_active %}<span class="badge badge-soft-green">Actif</span>{% else %}<span class="badge badge-soft-rose">Désactivé</span>{% endif %}</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                {% if perms.utilisateurs.change_customuser %}
+                                <a href="{% url 'modifier_utilisateur' u.id %}" class="btn btn-sm btn-soft"><i class="bi bi-pencil"></i></a>
+                                {% if u != user %}
+                                <form method="post" action="{% url 'basculer_utilisateur' u.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-light" title="Activer/Désactiver"><i class="bi bi-power"></i></button>
+                                </form>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-people"></i><p>Aucun utilisateur trouvé.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'base/pagination.html' %}
+{% endblock %}
